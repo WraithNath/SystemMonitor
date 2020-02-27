@@ -86,9 +86,14 @@ namespace WraithNath.SystemMonitor
             MemoryWindow mem = new MemoryWindow(Width, 3);
             mem.Position = new Point(0, 3);
             mem.IsVisible = true;
+            
+            StatsWindow stats = new StatsWindow(Width, 5);
+            stats.Position = new Point(0, 6);
+            stats.IsVisible = true;
 
             startingConsole.Children.Add(cpu);
             startingConsole.Children.Add(mem);
+            startingConsole.Children.Add(stats);
         }
 
         #endregion Methods
