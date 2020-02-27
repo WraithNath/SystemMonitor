@@ -14,9 +14,12 @@ namespace WraithNath.SystemMonitor.Consoles
     {
         #region Members
 
-        private PerformanceCounter _cpuCounter;
+        private PerformanceCounter _allCpuCounter;
+        private PerformanceCounterCategory _allCPUCategory;
         private TimeSpan _delta = TimeSpan.Zero;
-        private ProgressBar _cpuTotalProgressBar = null;
+        private Dictionary<string, CounterSample> _counterSamples = null;
+        private Dictionary<string, ProgressBar> _progressBars = null;
+        private string[] _instances = null;
 
         #endregion Members
 
@@ -29,11 +32,29 @@ namespace WraithNath.SystemMonitor.Consoles
         /// <param name="height">The Console Height</param>
         public CPUConsole(int width, int height) : base(width, height)
         {
-            _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            _allCpuCounter = new PerformanceCounter("Processor Information", "% Processor Time");
+            _allCPUCategory = new PerformanceCounterCategory("Processor Information");
 
-            _cpuTotalProgressBar = new ProgressBar(width-1, 1);
+            _instances = _allCPUCategory.GetInstanceNames();
 
-            this.Children.Add(_cpuTotalProgressBar);
+            _counterSamples = new Dictionary<string, CounterSample>();
+            _progressBars = new Dictionary<string, ProgressBar>();
+
+            int postition = 0;
+            foreach (string instance in _instances)
+            {
+                _allCpuCounter.InstanceName = instance;
+                _counterSamples.Add(instance, _allCpuCounter.NextSample());
+
+                ProgressBar progressBar = new ProgressBar(width - 1, 1);
+                progressBar.Position = new Point(0, postition);
+                progressBar.ExternalLabel = instance;
+
+                _progressBars.Add(instance, progressBar);
+                this.Children.Add(progressBar);
+
+                postition++;
+            }
         }
 
         #endregion Constructor
@@ -50,14 +71,30 @@ namespace WraithNath.SystemMonitor.Consoles
 
             if (_delta > Program.Interval)
             {
-                float cpuTotal = _cpuCounter.NextValue();
-                _delta = TimeSpan.Zero;
+                foreach (string instance in _instances)
+                {
+                    _allCpuCounter.InstanceName = instance;
 
-                _cpuTotalProgressBar.Percentage = cpuTotal;
-                _cpuTotalProgressBar.InternalLabel = $"{cpuTotal:0.0}%";
+                    float pc = Calculate(_counterSamples[instance], _allCpuCounter.NextSample());
+
+                    _progressBars[instance].Percentage = pc;
+                    _progressBars[instance].InternalLabel = $"{pc:0.0}%";
+
+                    _counterSamples[instance] = _allCpuCounter.NextSample();
+                }
+
+                _delta = TimeSpan.Zero;
             }
 
             base.Update(timeElapsed);
+        }
+
+        private float Calculate(CounterSample oldSample, CounterSample newSample)
+        {
+            float difference = newSample.RawValue - oldSample.RawValue;
+            float timeInterval = newSample.TimeStamp100nSec - oldSample.TimeStamp100nSec;
+            if (timeInterval != 0) return 100 * (1 - (difference / timeInterval));
+            return 0;
         }
 
         #endregion Methods

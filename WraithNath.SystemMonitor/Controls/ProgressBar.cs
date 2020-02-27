@@ -140,10 +140,11 @@ namespace WraithNath.SystemMonitor.Controls
             if (this.InternalLabel != string.Empty)
                 this.Print(this.Width - 1 - this.InternalLabel.Length, y, this.InternalLabel, Color.DimGray);
 
-            float width = (((float)(this.Width - x - 1 )/ 100f) * this.Percentage);
+            float width = (((float)(this.Width - x - 1) / 100f) * this.Percentage);
 
             //Print Progress Bar
-            this.Print(x, y, string.Empty.PadRight((int)width, '|'), Color.MediumSeaGreen);
+            if (width > 0)
+                this.Print(x, y, string.Empty.PadRight((int)width, '|'), Color.MediumSeaGreen);
 
             this.SetGlyph(this.Width - 1, y, ']', Color.White);
         }

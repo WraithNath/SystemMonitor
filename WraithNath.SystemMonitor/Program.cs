@@ -80,15 +80,15 @@ namespace WraithNath.SystemMonitor
 
             var startingConsole = SadConsole.Global.CurrentScreen;
 
-            CPUWindow cpu = new CPUWindow(Width, 3);
+            CPUWindow cpu = new CPUWindow(Width, 16);
             cpu.IsVisible = true;
 
             MemoryWindow mem = new MemoryWindow(Width, 3);
-            mem.Position = new Point(0, 3);
+            mem.Position = new Point(0, 16);
             mem.IsVisible = true;
             
             StatsWindow stats = new StatsWindow(Width, 5);
-            stats.Position = new Point(0, 6);
+            stats.Position = new Point(0, 19);
             stats.IsVisible = true;
 
             startingConsole.Children.Add(cpu);
